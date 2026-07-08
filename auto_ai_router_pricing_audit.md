@@ -49,14 +49,11 @@
 
 ---
 
-## 5. Image Input — ❌ НЕ реализовано
+## 5. Image Input — ❌ НЕ биллится
 
-| Этап | Статус |
-|------|--------|
-| Поле в LiteLLM DB | ✅ `InputCostPerImage`, `InputCostPerImageAbove128kTokens` |
-| Маппинг в ModelPrice | ❌ **НЕ маппится** — `convertPricingToModelPrice` не переносит эти поля |
-| Поле в модели | ⚠️ `ModelPrice.InputCostPerImageToken` существует, но **никогда не заполняется** из DB и **не используется** в `CalculateTokenCosts` |
-| Расчёт стоимости | ❌ `ImageTokens` из Vertex AI парсятся, но не участвуют в ценообразовании |
+- `InputCostPerImage` и `InputCostPerImageAbove128kTokens` парсятся из LiteLLM DB (`model_table.go:37-38`)
+- Но **не маппятся** в `ModelPrice` — `convertPricingToModelPrice` (`model_table/model_table.go`) игнорирует эти поля
+- `ImageTokens` парсятся, но не участвуют в расчёте цены
 
 ---
 
