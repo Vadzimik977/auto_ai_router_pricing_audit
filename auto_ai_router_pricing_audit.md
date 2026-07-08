@@ -59,7 +59,7 @@
 
 ---
 
-## 5. Cache Write (Cache Creation) — ✅ Реализовано (без per-TTL)
+## 5. Cache Write (Cache Creation) — ✅ Единая ставка
 
 | Этап | Статус |
 |------|--------|
@@ -71,12 +71,13 @@
 | Расчёт | ✅ Вычитается из `PromptTokens`, считается по своей цене |
 | Проброс в ответ | ✅ |
 | Spend-логи | ✅ Агрегируется в `LiteLLM_DailyUserSpend` и другие таблицы |
-| **Per-TTL разбивка (5m / 1h)** | ❌ **НЕ реализовано** |
+| **Per-TTL разбивка (5m / 1h)** | ❌ **НЕ поддерживается** |
 
 ### Per-TTL детали
 - Anthropic возвращает `CacheCreationDetails` с `ephemeral_5m_input_tokens` и `ephemeral_1h_input_tokens`
+- LiteLLM также имеет отдельные поля: `cache_creation_input_token_cost_above_128k_tokens` и `cache_creation_input_token_cost_above_200k_tokens`
 - В AIR эта структура **определена** (`types.go:119-122`), но **нигде не читается и не используется**
-- Все cache write токены тарифицируются по единой ставке `CacheCreationInputTokenCost`
+- Ни `ephemeral_5m`, ни `ephemeral_1h`, ни tiered cache write pricing не реализованы — все cache write токены тарифицируются по единой ставке `CacheCreationInputTokenCost`
 
 ---
 
@@ -93,11 +94,3 @@
 | Regular above 200k | ✅ Работает | Только для regular токенов |
 | Video/Image per second | ❌ Не проверялось | — |
 
----
-
-## Ключевые файлы для доработки
-
-- `internal/litellmdb/model_table/model_table.go` — `convertPricingToModelPrice` (добавить маппинг пропущенных полей)
-- `internal/models/manager.go` — `ModelPrice` (добавить `InputCostPerCachedTokenAbove200k`, `InputCostPerCachedAudioToken`)
-- `internal/models/price_calculator.go` — `CalculateTokenCosts` (добавить tiered cached и cached audio pricing)
-- `internal/converter/anthropic/` — `CacheCreationDetails` (задействовать per-TTL разбивку)
