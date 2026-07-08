@@ -80,7 +80,23 @@
 
 ---
 
-## 8. Web Search — ❌ НЕ реализовано
+## 8. Cache Read — ✅ Полностью реализовано
+
+| Этап | Статус |
+|------|--------|
+| Парсинг из ответа провайдера | ✅ Anthropic `cache_read_input_tokens`, OpenAI Prompt Caching |
+| Поле в структуре | ✅ `TokenUsage.CachedInputTokens` |
+| Цена в модели | ✅ `InputCostPerCachedToken`, fallback на `CacheReadInputTokenCost` (LiteLLM alias) → `InputCostPerToken` |
+| Маппинг из LiteLLM DB | ✅ `CacheReadInputTokenCost` → `InputCostPerCachedToken` |
+| Расчёт стоимости | ✅ Вычитается из `PromptTokens`, считается отдельно |
+| Проброс в ответ | ✅ В `prompt_tokens_details.cached_tokens` |
+| Spend-логи | ✅ Агрегируется как `cache_read_input_tokens` во всех таблицах |
+
+Обычный text Cache Read работает полностью. Единственное исключение — **above 200k** (см. п.4).
+
+---
+
+## 9. Web Search — ❌ НЕ реализовано
 
 | Этап | Статус |
 |------|--------|
@@ -100,6 +116,7 @@
 |------|--------|
 | Audio Input | ✅ Полностью |
 | Audio Cache Read | ❌ Не реализовано (поле есть, не маппится) |
+| **Cache Read** | ✅ **Полностью** |
 | Image Input | ❌ Не реализовано (поле в DB есть, не маппится, не используется) |
 | Image Output | ⚠️ Частично (per-image для генерации, per-token не реализован) |
 | Image Cache Read | ❌ Отсутствует |
