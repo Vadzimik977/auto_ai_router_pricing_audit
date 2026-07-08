@@ -35,19 +35,26 @@
 
 ---
 
-## 4. Cache Read Long Context (above 200k) — ❌ НЕ реализовано
+## 4. Input Long Context (above 128k / 200k) — ✅ Работает для regular, ❌ НЕ для cached
 
-| Этап | Статус |
-|------|--------|
-| Поле в LiteLLM DB | ✅ `cache_read_input_token_cost_above_200k_tokens` |
-| Маппинг в ModelPrice | ❌ **НЕ маппится**, нет поля `InputCostPerCachedTokenAbove200k` |
-| Расчёт | ❌ Кэш выше 200k считается по обычной ставке кэша |
+### Regular input long context — ✅ Работает
+- `InputCostPerTokenAbove200k` — ✅ маппится из LiteLLM DB (`model_table.go:23`) в `ModelPrice`, участвует в `CalculateTokenCosts` с пропорциональным распределением
+- `InputCostPerTokenAbove128kTokens` — ⚠️ парсится из DB, но **не маппится** в `ModelPrice`, в расчёте не участвует
 
-**Regular-токены** above 200k — ✅ работают (`InputCostPerTokenAbove200k` / `OutputCostPerTokenAbove200k`).
-
-**Regular-токены** above 128k (`InputCostPerTokenAbove128kTokens` / `OutputCostPerTokenAbove128kTokens`) — ⚠️ парсятся из LiteLLM DB, но **не маппятся** в `ModelPrice`, в расчёте не участвуют.
+### Cached input long context — ❌ НЕ реализовано
+- `CacheReadInputTokenCostAbove200kTokens` — ⚠️ парсится из LiteLLM DB (`model_table.go:19`), но **не маппится** в `ModelPrice`, нет поля `InputCostPerCachedTokenAbove200k`
+- Кэш выше 200k считается по обычной ставке кэша
 
 ---
+
+## 5. Output Long Context (above 128k / 200k) — ✅ Работает для regular, ❌ НЕ для cached
+
+### Regular output long context — ✅ Работает
+- `OutputCostPerTokenAbove200k` — ✅ маппится из LiteLLM DB (`model_table.go:12`) в `ModelPrice`, участвует в `CalculateTokenCosts` с пропорциональным распределением
+- `OutputCostPerTokenAbove128kTokens` — ⚠️ парсится из DB, но **не маппится** в `ModelPrice`, в расчёте не участвует
+
+### Cached output long context — ❌ НЕ реализовано
+Отдельных полей для cached output above 128k/200k нет ни в LiteLLM DB, ни в `ModelPrice`.
 
 ## 5. Image Input — ❌ НЕ биллится
 
@@ -122,9 +129,10 @@
 | Image Output | ⚠️ Частично (per-image для генерации, per-token не реализован) |
 | Image Generation $/image | ✅ Работает через `OutputCostPerImage` |
 | Image Cache Read | ❌ Отсутствует |
-| **Regular above 200k** | ✅ **Работает** |
-| **Regular above 128k** | ⚠️ **Парсится из DB, но не маппится, не используется** |
-| Cache Read above 200k | ❌ Не реализовано (поле есть, не маппится) |
+| **Input Long Context (regular)** | ✅ **above 200k работает; above 128k парсится, но не маппится** |
+| **Output Long Context (regular)** | ✅ **above 200k работает; above 128k парсится, но не маппится** |
+| Input Long Context (cached) | ❌ Не реализовано (поле есть, не маппится) |
+| Output Long Context (cached) | ❌ Нет полей даже в LiteLLM DB |
 | 5m Cache Write | ❌ Не поддерживается |
 | 1h Cache Write | ❌ Не поддерживается |
 | Web Search | ❌ Не реализовано (парсится, но не участвует в расчёте) |
