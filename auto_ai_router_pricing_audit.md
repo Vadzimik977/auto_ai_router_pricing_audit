@@ -47,7 +47,29 @@
 
 ---
 
-## 5. 5m / 1h Cache Write — ❌ НЕ поддерживается
+## 5. Image Input — ❌ НЕ реализовано
+
+| Этап | Статус |
+|------|--------|
+| Поле в LiteLLM DB | ✅ `InputCostPerImage`, `InputCostPerImageAbove128kTokens` |
+| Маппинг в ModelPrice | ❌ **НЕ маппится** — `convertPricingToModelPrice` не переносит эти поля |
+| Поле в модели | ⚠️ `ModelPrice.InputCostPerImageToken` существует, но **никогда не заполняется** из DB и **не используется** в `CalculateTokenCosts` |
+| Расчёт стоимости | ❌ `ImageTokens` из Vertex AI парсятся, но не участвуют в ценообразовании |
+
+---
+
+## 6. Image Output — ⚠️ Частично (per-image, не per-token)
+
+| Этап | Статус |
+|------|--------|
+| Поле в LiteLLM DB | ✅ `OutputCostPerImage`, `OutputCostPerImageToken` |
+| Маппинг в ModelPrice | ✅ Оба маппятся в `convertPricingToModelPrice` |
+| Расчёт стоимости | ⚠️ Работает как **per-image** (количество изображений из параметра `n`) по `OutputCostPerImage`, с fallback на `OutputCostPerImageToken` |
+| Расчёт по токенам | ❌ `OutputCostPerImageToken` тоже считается как `ImageCount * price`, а не как токены изображения — per-token pricing не реализован |
+
+---
+
+## 7. 5m / 1h Cache Write — ❌ НЕ поддерживается
 
 | Этап | Статус |
 |------|--------|
@@ -64,6 +86,8 @@
 |------|--------|
 | Audio Input | ✅ Полностью |
 | Audio Cache Read | ❌ Не реализовано (поле есть, не маппится) |
+| Image Input | ❌ Не реализовано (поле в DB есть, не маппится, не используется) |
+| Image Output | ⚠️ Частично (per-image для генерации, per-token не реализован) |
 | Image Cache Read | ❌ Отсутствует |
 | Cache Read above 200k | ❌ Не реализовано (поле есть, не маппится) |
 | 5m Cache Write | ❌ Не поддерживается |
