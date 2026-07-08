@@ -45,6 +45,8 @@
 
 **Regular-токены** above 200k — ✅ работают (`InputCostPerTokenAbove200k` / `OutputCostPerTokenAbove200k`).
 
+**Regular-токены** above 128k (`InputCostPerTokenAbove128kTokens` / `OutputCostPerTokenAbove128kTokens`) — ⚠️ парсятся из LiteLLM DB, но **не маппятся** в `ModelPrice`, в расчёте не участвуют.
+
 ---
 
 ## 5. Image Input — ❌ НЕ реализовано
@@ -66,6 +68,8 @@
 | Маппинг в ModelPrice | ✅ Оба маппятся в `convertPricingToModelPrice` |
 | Расчёт стоимости | ⚠️ Работает как **per-image** (количество изображений из параметра `n`) по `OutputCostPerImage`, с fallback на `OutputCostPerImageToken` |
 | Расчёт по токенам | ❌ `OutputCostPerImageToken` тоже считается как `ImageCount * price`, а не как токены изображения — per-token pricing не реализован |
+
+**Image Generation $/image** — ✅ используется `OutputCostPerImage` (для DALL-E и т.п.).
 
 ---
 
@@ -119,7 +123,10 @@
 | **Cache Read** | ✅ **Полностью** |
 | Image Input | ❌ Не реализовано (поле в DB есть, не маппится, не используется) |
 | Image Output | ⚠️ Частично (per-image для генерации, per-token не реализован) |
+| Image Generation $/image | ✅ Работает через `OutputCostPerImage` |
 | Image Cache Read | ❌ Отсутствует |
+| **Regular above 200k** | ✅ **Работает** |
+| **Regular above 128k** | ⚠️ **Парсится из DB, но не маппится, не используется** |
 | Cache Read above 200k | ❌ Не реализовано (поле есть, не маппится) |
 | 5m Cache Write | ❌ Не поддерживается |
 | 1h Cache Write | ❌ Не поддерживается |
